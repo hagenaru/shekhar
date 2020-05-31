@@ -1,0 +1,56 @@
+<?php
+	//Start session
+	session_start();
+	
+	//Connect to mysql server
+		$database="cpis";
+		
+		$con = mysql_connect("localhost","root" ,"");
+		if (!$con)
+		{
+			die('Could not connect: ' . mysql_error());
+    	}
+    mysql_select_db("$database", $con);
+	
+	//Function to sanitize values received from the form. Prevents SQL injection
+	function clean($str) {
+		$str = @trim($str);
+		if(get_magic_quotes_gpc()) {
+			$str = stripslashes($str);
+		}
+		return mysql_real_escape_string($str);
+	}
+	
+	//Sanitize the POST values
+	$una = clean($_POST['una']);
+	$pas = clean($_POST['pas']);
+	echo"$pas";
+	
+	//Create query
+	$qry="SELECT * FROM admin WHERE pas='$pas' AND una='$una'";
+	$result=mysql_query($qry);
+	//while($row = mysql_fetch_array($result))
+//  {
+//  $level=$row['position'];
+//  }
+	//Check whether the query was successful or not
+	if($result) {
+		if(mysql_num_rows($result) > 0) {
+			//Login Successful
+			session_regenerate_id();
+			$member = mysql_fetch_assoc($result);
+			$_SESSION['SESS_MEMBER_ID'] = $member['pas'];
+			$_SESSION['SESS_FIRST_NAME'] = $member['una'];
+			session_write_close();
+			//if ($level="admin"){
+			header("location: http://localhost/Car%20Parts%20Inventory%20System/add_prt.php");
+			exit();
+		}else {
+			//Login failed
+			header("location: index.php");
+			exit();
+		}
+	}else {
+		die("Query failed");
+	}
+?>
